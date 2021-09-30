@@ -43,12 +43,16 @@ struct SetGameModel {
         Array(cards.filter { $0.isDisplayed == false }.prefix(cardsCount))
     }
 
-    func addThreeCards() -> [Card] {
-        cardsToBeAdded(3)
+    mutating func addThreeCards() {
+        for card in cardsToBeAdded(3) {
+            markAsDisplayed(card)
+        }
     }
 
-    func addNewCards() -> [Card] {
-        cardsToBeAdded(startingNumberOfCard)
+    mutating func addNewCards() {
+        for card in cardsToBeAdded(startingNumberOfCard) {
+            markAsDisplayed(card)
+        }
     }
 
     mutating func markAsDisplayed(_ card: Card) {
@@ -65,7 +69,7 @@ struct SetGameModel {
         cards.firstIndex(where: { $0.id == id })
     }
 
-    mutating func choose(_ card: Card, showMatchAlert: (Bool) -> ()) -> [Card]? {
+    mutating func choose(_ card: Card) {
         if let chosenIndex = getIndexOfCard(with: card.id) { //cards.firstIndex(where: { $0.id == card.id }) {
             if cards[chosenIndex].isSelected {
                 cards[chosenIndex].isSelected = false // deselect card, if it was already selected. Changes UI
@@ -90,14 +94,13 @@ struct SetGameModel {
                     }
                 }
                 if checkIfNeedToAddMoreCards() && canAddMoreCards() { // automatically add 3 cards, if there is less than 12 displayed
-                    return addThreeCards()
+                    addThreeCards()
                 }
-                showMatchAlert(true)
+//                showMatchAlert(true)
             } else {
-                showMatchAlert(false)
+//                showMatchAlert(false)
             }
         }
-        return nil
     }
 
     private func checkIfNeedToAddMoreCards() -> Bool {
@@ -135,9 +138,9 @@ extension SetGameModel {
         let id: Int
         let atribiutes: CardAtribiutes
 
-        var isDisplayed: Bool = false
-        var isSelected: Bool = false
-        var isMatchedUp: Bool = false
+        var isDisplayed = false
+        var isSelected = false
+        var isMatchedUp = false
     }
 
     struct CardAtribiutes {

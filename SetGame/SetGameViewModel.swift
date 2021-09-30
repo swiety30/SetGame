@@ -40,27 +40,21 @@ class SetGameViewModel: ObservableObject {
 
     // MARK: - Intent(s)
 
-    func choose(_ card: Card, showMatchAlert: (Bool) -> (), cardsToBeDisplayed: ([Card]?) -> ()) {
-        let cards = model.choose(card, showMatchAlert: showMatchAlert)
-        cardsToBeDisplayed(cards)
+    func choose(_ card: Card) {
+        model.choose(card)
     }
 
     func markCardAsDisplayed(_ card: Card) {
         model.markAsDisplayed(card)
     }
 
-    func addCards(shouldShowAlert: (_ shouldShowNoMoreCardsAlert: Bool) -> (), cardsToBeDisplayed: ([Card]?) -> ()) {
+    func addCards() {
         if displayedCards.count >= maxItemCount {
             if model.canAddMoreCards() {
-                let cards = model.addThreeCards()
-                shouldShowAlert(false)
-                cardsToBeDisplayed(cards)
-            } else {
-                shouldShowAlert(true)
+                model.addThreeCards()
             }
         } else {
-            let cards = model.addNewCards()
-            cardsToBeDisplayed(cards)
+                model.addNewCards()
         }
     }
     

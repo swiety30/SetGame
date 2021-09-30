@@ -20,11 +20,14 @@ struct SetGameView: View {
     @State private var shouldShowNotMatchAlert = false
     @Namespace private var dealingNamespace
 
-    func dealAnimation(for card: SetGameViewModel.Card.ID, cardsCount: Int) -> Animation {
+    func dealAnimation(for card: SetGameViewModel.Card.ID) -> Animation {
         var delay = 0.0
+        print("[PW] card: \(card)")
         if let index = setGameViewModel.cards.firstIndex(where: { $0.id == card }) {
             delay = Double(index) * (2.0 / Double(setGameViewModel.cards.count))
+            print("[PW] index \(index)")
         }
+        print("[PW] delay: \(delay)")
         return Animation.easeInOut(duration: 0.5).delay(delay)
     }
 
@@ -48,54 +51,28 @@ struct SetGameView: View {
                     .foregroundColor(.yellow)
                     .opacity(0.5)
                     .matchedGeometryEffect(id: card.id, in: dealingNamespace)
-                    .transition(AnyTransition.asymmetric(insertion: .opacity, removal: .identity))
                     .zIndex(zIndex(of: card))
-                    .onTapGesture {
-                        addCards { shouldShowNoMoreCardsAlert in
-                            self.shouldShowNoMoreCardsAlert = shouldShowNoMoreCardsAlert
-                        } _: { cards in
-                            if let cardsToBeDisplayed = cards {
-                                for card in cardsToBeDisplayed {
-                                    withAnimation(dealAnimation(for: card.id, cardsCount: cardsToBeDisplayed.count)) {
-                                        setGameViewModel.markCardAsDisplayed(card)
-                                    }
-                                }
-                            }
-                        }
-                    }
+            }
+            .onTapGesture {
+                setGameViewModel.addCards()
             }
         }
-        .alert(isPresented: $shouldShowNoMoreCardsAlert, content: {
-            noMoreCardsAlert()
-        })
     }
-
     var cardsView: some View {
-        AspectVGrid(items: setGameViewModel.cardsToDisplay, maxItemCount: setGameViewModel.maxItemCount, aspectRatio: 2/3) { card in
+        AspectVGrid(items: setGameViewModel.cardsToDisplay, maxItemCount: setGameViewModel.maxItemCount, aspectRatio: 3/4) { card in
+            
             let cardView = CardView(item: card)
                 .matchedGeometryEffect(id: card.id, in: dealingNamespace)
-                .transition(AnyTransition.asymmetric(insertion: .identity, removal: .scale))
+                .padding(4)
                 .zIndex(zIndex(of: card))
-                .modifier(Shake(animatableData: shouldShowNotMatchAlert ? 1 : 0))
+//                .transition(AnyTransition.asymmetric(insertion: .move(edge: .leading), removal: .identity))
+                .animation(dealAnimation(for: card.id))
                 .onTapGesture {
                     withAnimation {
-                        setGameViewModel.choose(card) { shouldShowAlert in
-                            if shouldShowAlert {
-                                shouldShowMatchAlert = true
-                            } else {
-                                shouldShowNotMatchAlert = true
-                            }
-                        } cardsToBeDisplayed: { cards in
-                            if let cardsToBeDisplayed = cards {
-                                for card in cardsToBeDisplayed {
-                                    withAnimation(dealAnimation(for: card.id, cardsCount: cardsToBeDisplayed.count)) {
-                                        setGameViewModel.markCardAsDisplayed(card)
-                                    }
-                                }
-                            }
-                        }
+                        setGameViewModel.choose(card)
                     }
                 }
+                
             if !card.isMatchedUp {
                 cardView
             }
@@ -103,60 +80,17 @@ struct SetGameView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            VStack {
-                HStack {
-                    newGame
-                    Spacer()
-                    deck
-                }
-                .padding()
-                .font(.title)
-
-                cardsView
-
-//                AlertPlaceholder()
-//                    .alert(isPresented: $shouldShowMatchAlert, content: {
-//                        matchAlert()
-//                    })
-//                AlertPlaceholder()
-//                    .alert(isPresented: $shouldShowNotMatchAlert, content: {
-//                        notMatchAlert()
-//                    })
-                //Cannot attach 2 alerts to one view. So I've created empty Views (which not take place on screen).
+        VStack {
+            HStack {
+                newGame
+                Spacer()
+                deck
             }
+            .padding()
+            .font(.title)
+            cardsView
+                .padding(.horizontal)
         }
-
-    }
-
-    private func addCards(_ showAlert: (Bool) -> (), _ cardsToBeDisplayed: ([SetGameModel.Card]?) -> ()) {
-        setGameViewModel.addCards(shouldShowAlert: showAlert, cardsToBeDisplayed: cardsToBeDisplayed)
-    }
-
-    private func notMatchAlert() -> Alert {
-        Alert(title: Text("It's not a match"),
-              message: Text("Try again, please find a correct Set this time!"),
-              dismissButton: .cancel(Text("OK")))
-    }
-
-    private func matchAlert() -> Alert {
-        Alert(title: Text("It's a match"),
-              message: Text("Such a sharp eye! Go on!"),
-              dismissButton: .cancel(Text("OK")))
-    }
-
-    private func noMoreCardsAlert() -> Alert {
-        Alert(title: Text("No more Cards!"),
-              message: Text("Please try using current cards."),
-              dismissButton: .cancel(Text("OK")))
-    }
-    // Alerts should  be replaced with some fancy animations
-}
-
-struct AlertPlaceholder: View {
-    var body: some View {
-        Rectangle()
-            .frame(width: 0, height: 0, alignment: .center)
     }
 }
 

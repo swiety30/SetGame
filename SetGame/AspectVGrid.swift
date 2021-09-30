@@ -20,11 +20,9 @@ struct AspectVGrid<Item, ItemView>: View where ItemView: View, Item: Identifiabl
                 LazyVGrid(columns: [adaptiveGridItem(width: width)], spacing: 0) {
                     ForEach(items) { item in
                         content(item).aspectRatio(aspectRatio, contentMode: .fit)
-                            .padding(5)
                     }
                 }
-            }.padding()
-            ZStack {
+            }
                 if items.count > maxItemCount {
                     ScrollView(showsIndicators: false) {
                         vStack
@@ -32,9 +30,6 @@ struct AspectVGrid<Item, ItemView>: View where ItemView: View, Item: Identifiabl
                 } else {
                     vStack
                 }
-
-                Spacer(minLength: 0)
-            }
         }
     }
 
@@ -53,8 +48,8 @@ struct AspectVGrid<Item, ItemView>: View where ItemView: View, Item: Identifiabl
 
     private func widthThatFits(in size: CGSize, itemAspectRatio: CGFloat) -> CGFloat {
         var columnCount = 1
-        var rowCount = maxItemCount
         let itemCount = maxItemCount
+        var rowCount = itemCount
 
         repeat {
             let itemWidth = size.width / CGFloat(columnCount)
